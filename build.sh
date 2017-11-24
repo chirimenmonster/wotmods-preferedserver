@@ -1,7 +1,7 @@
 #! /bin/bash
 
 MODBASE=scripts/client/gui/mods
-MODNAME=chirimen.preferedserver_0.1
+MODNAME=chirimen.preferedserver_0.2
 
 rm -r tmp
 
