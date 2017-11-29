@@ -13,3 +13,5 @@ WoT のサーバ選択を次回起動時にも適用する mod です。
 
 [リリースページ](../../releases/latest) から wotmod ファイルをダウンロードして、
 WoT インストールフォルダの mods/XXX にコピーします (XXX はクライアントのバージョン)。
+
+![スクリーンショット](https://user-images.githubusercontent.com/11075065/33375624-e562d2f6-d54d-11e7-8a70-36fffa4d690c.png)
