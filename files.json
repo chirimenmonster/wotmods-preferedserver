@@ -1,0 +1,8 @@
+[
+    {
+        "method":   "python",
+        "root":     "res",
+        "reldir":   "scripts/client/gui/mods",
+        "files":    [ "mods/mod_preferredserver.py" ]
+    }
+]
