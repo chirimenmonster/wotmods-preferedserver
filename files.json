@@ -4,5 +4,11 @@
         "root":     "res",
         "reldir":   "scripts/client/gui/mods",
         "files":    [ "mods/mod_preferredserver.py" ]
+    },
+    {
+        "method":   "apply",
+        "root":     "",
+        "reldir":   "",
+        "files":    [ "meta.xml", "readme.txt" ]
     }
 ]

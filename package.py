@@ -14,18 +14,9 @@ def get_config():
     inifile = ConfigParser.SafeConfigParser()
     inifile.read(CONFIG)
 
-    parameters = dict(
-        package     = inifile.get('mod', 'package'),
-        package_id  = inifile.get('mod', 'package_id'),
-        logfile     = inifile.get('mod', 'logfile'),
-        name        = inifile.get('mod', 'name'),
-        author      = inifile.get('mod', 'author'),
-        version     = inifile.get('mod', 'version'),
-        description = inifile.get('mod', 'description'),
-        support_url = inifile.get('mod', 'support_url'),
-        github_page = inifile.get('mod', 'github_page'),
-        wot_version = inifile.get('wot', 'version')
-    )
+    parameters = dict(inifile.items('mod'))
+    for k, v in inifile.items('wot'):
+        parameters['wot_' + k] = v
     return parameters
 
 
