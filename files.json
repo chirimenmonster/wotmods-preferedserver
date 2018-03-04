@@ -5,13 +5,13 @@
             "method":   "python",
             "root":     "res",
             "reldir":   "scripts/client/gui/mods",
-            "files":    [ "mods/mod_preferredserver.py" ]
+            "source":   [ "mods/mod_preferredserver.py" ]
         },
         {
             "method":   "apply",
             "root":     "",
             "reldir":   "",
-            "files":    [ "meta.xml", "readme.txt" ]
+            "source":   [ "meta.xml", "readme.txt" ]
         }
     ]
 }
