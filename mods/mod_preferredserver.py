@@ -27,6 +27,8 @@ def init():
         BigWorld.logInfo(MOD.NAME, '{0} {1} ({2})'.format(MOD.NAME, MOD.VERSION, MOD.SUPPORT_URL), None)
         Manager.AUTO_LOGIN_QUERY_ENABLED = False
         Manager.Manager._onLoggedOn_modified = Manager_onLoggedOn_modified
+        Manager.Manager.initiateRelogin_orig = Manager.Manager.initiateRelogin
+        Manager.Manager.initiateRelogin = Manager_initiateRelogin_modified
         loginMgr = ServiceLocator.loginMgr
         ServiceLocator.connectionMgr.onLoggedOn -= loginMgr._onLoggedOn
         ServiceLocator.connectionMgr.onLoggedOn += loginMgr._onLoggedOn_modified
@@ -48,3 +50,12 @@ def Manager_onLoggedOn_modified(self, responseData):
     except:
         LOG_CURRENT_EXCEPTION()
     self._onLoggedOn(responseData)
+
+
+def Manager_initiateRelogin_modified(self, login, token2, serverName):
+    print 'initiateRelogin_modified'
+    try:
+        self._preferences['server_name'] = serverName
+    except:
+        LOG_CURRENT_EXCEPTION()
+    self.initiateRelogin_orig(login, token2, serverName)
