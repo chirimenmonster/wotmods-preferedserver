@@ -2,10 +2,13 @@
 
 import BigWorld
 from debug_utils import LOG_CURRENT_EXCEPTION
+from gui import SystemMessages
 from gui.login import Manager
 from helpers import dependency
+from helpers import i18n
 from skeletons.connection_mgr import IConnectionManager
 from skeletons.gui.login_manager import ILoginManager
+from predefined_hosts import g_preDefinedHosts
 
 class MOD:
     """mod's information"""
@@ -33,12 +36,14 @@ def init():
 
 def Manager_onLoggedOn_modified(self, responseData):
     try:
+        serverName = self._preferences['server_name']
+        serverShortName = g_preDefinedHosts.byUrl(serverName).shortName or i18n.makeString('#menu:login/auto')
+        SystemMessages.pushMessage('{}: selected {}'.format(MOD.NAME, serverShortName))
         if self.wgcAvailable and self._Manager__wgcManager.onLoggedOn(responseData):
-            serverName = self._preferences['server_name']
             self._preferences.clear()
             self._preferences['server_name'] = serverName
             self._preferences.writeLoginInfo()
-            BigWorld.logInfo(MOD.NAME, 'save server_name: {}'.format(serverName), None)
+            BigWorld.logInfo(MOD.NAME, 'save server_name: {} ({})'.format(serverShortName, serverName), None)
             return
     except:
         LOG_CURRENT_EXCEPTION()
