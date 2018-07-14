@@ -1,17 +1,17 @@
 {
     "package":  "${package}",
-    "files":    [
+    "sources":    [
         {
-            "method":   "python",
+            "method":   "apply+python",
             "root":     "res",
             "reldir":   "scripts/client/gui/mods",
-            "source":   [ "mods/mod_preferredserver.py" ]
+            "files":   [ "mods/mod_preferredserver.py" ]
         },
         {
             "method":   "apply",
             "root":     "",
             "reldir":   "",
-            "source":   [ "meta.xml", "readme.txt" ]
+            "files":   [ "meta.xml", "readme.txt" ]
         }
     ]
 }
