@@ -8,7 +8,7 @@ from helpers import dependency
 from helpers import i18n
 from skeletons.connection_mgr import IConnectionManager
 from skeletons.gui.login_manager import ILoginManager
-from predefined_hosts import g_preDefinedHosts
+from predefined_hosts import g_preDefinedHosts, AUTO_LOGIN_QUERY_URL
 
 class MOD:
     """mod's information"""
@@ -29,6 +29,8 @@ def init():
         Manager.Manager._onLoggedOn_modified = Manager_onLoggedOn_modified
         Manager.Manager.initiateRelogin_orig = Manager.Manager.initiateRelogin
         Manager.Manager.initiateRelogin = Manager_initiateRelogin_modified
+        Manager.Manager.tryWgcLogin_orig = Manager.Manager.tryWgcLogin
+        Manager.Manager.tryWgcLogin = Manager_tryWgcLogin_modified
         loginMgr = ServiceLocator.loginMgr
         ServiceLocator.connectionMgr.onLoggedOn -= loginMgr._onLoggedOn
         ServiceLocator.connectionMgr.onLoggedOn += loginMgr._onLoggedOn_modified
@@ -36,26 +38,39 @@ def init():
         LOG_CURRENT_EXCEPTION()
 
 
+def getServerShortName(serverUrl):
+    return g_preDefinedHosts.byUrl(serverUrl).shortName or i18n.makeString('#menu:login/auto')
+
 def Manager_onLoggedOn_modified(self, responseData):
     try:
         serverName = self._preferences['server_name']
-        serverShortName = g_preDefinedHosts.byUrl(serverName).shortName or i18n.makeString('#menu:login/auto')
+        serverShortName = getServerShortName(serverName)
         SystemMessages.pushMessage('{}: selected {}'.format(MOD.NAME, serverShortName))
         if self.wgcAvailable and self._Manager__wgcManager.onLoggedOn(responseData):
             self._preferences.clear()
-            self._preferences['server_name'] = serverName
+            if serverName != AUTO_LOGIN_QUERY_URL:
+                self._preferences['server_name'] = serverName
+                BigWorld.logInfo(MOD.NAME, 'onLoggedOn: save server_name: {} ({})'.format(serverShortName, serverName), None)
             self._preferences.writeLoginInfo()
-            BigWorld.logInfo(MOD.NAME, 'save server_name: {} ({})'.format(serverShortName, serverName), None)
             return
     except:
         LOG_CURRENT_EXCEPTION()
     self._onLoggedOn(responseData)
 
-
+    
 def Manager_initiateRelogin_modified(self, login, token2, serverName):
-    print 'initiateRelogin_modified'
     try:
         self._preferences['server_name'] = serverName
+        serverShortName = getServerShortName(serverName)
+        BigWorld.logInfo(MOD.NAME, 'initiateRelogin: set preference server_name: {} ({})'.format(serverShortName, serverName), None)
     except:
         LOG_CURRENT_EXCEPTION()
     self.initiateRelogin_orig(login, token2, serverName)
+
+
+def Manager_tryWgcLogin_modified(self, serverName = None):
+    self.tryWgcLogin_orig(serverName)
+    if self.wgcAvailable:
+        self._preferences['server_name'] = serverName
+        serverShortName = getServerShortName(serverName)
+        BigWorld.logInfo(MOD.NAME, 'tryWgcLogin: set preference server_name: {} ({})'.format(serverShortName, serverName), None)
