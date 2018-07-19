@@ -18,39 +18,45 @@ class MOD:
     DESCRIPTION = '${description}'
     SUPPORT_URL = '${support_url}'
 
-def _OverrideMethod(handler, cls, method):
-    orig = getattr(cls, method)
-    newm = lambda *a, **k: handler(orig, *a, **k)
-    if type(orig) is not property:
-        setattr(cls, method, newm)
-    else:
-        setattr(cls, method, property(newm))
         
-def overrideMethod(*a, **k):
-    def decorator2(handler):
-        _OverrideMethod(handler, *a, **k)
-    return decorator2
+def overrideMethod(cls, method):
+    def decorator(handler):
+        orig = getattr(cls, method)
+        newm = lambda *args, **kwargs: handler(orig, *args, **kwargs)
+        if type(orig) is not property:
+            setattr(cls, method, newm)
+        else:
+            setattr(cls, method, property(newm))
+    return decorator
+
 
 class ServiceLocator(object):
     connectionMgr = dependency.descriptor(IConnectionManager)
     loginMgr = dependency.descriptor(ILoginManager)
 
-def init():
-    try:
-        BigWorld.logInfo(MOD.NAME, '{0} {1} ({2})'.format(MOD.NAME, MOD.VERSION, MOD.SUPPORT_URL), None)
-        Manager.AUTO_LOGIN_QUERY_ENABLED = False
-        Manager.Manager._onLoggedOn_modified = Manager_onLoggedOn_modified
-        loginMgr = ServiceLocator.loginMgr
-        ServiceLocator.connectionMgr.onLoggedOn -= loginMgr._onLoggedOn
-        ServiceLocator.connectionMgr.onLoggedOn += loginMgr._onLoggedOn_modified           
-    except:
-        LOG_CURRENT_EXCEPTION()
-
 
 def getServerShortName(serverUrl):
     return g_preDefinedHosts.byUrl(serverUrl).shortName or i18n.makeString('#menu:login/auto')
 
-def Manager_onLoggedOn_modified(self, responseData):
+
+def init():
+    try:
+        BigWorld.logInfo(MOD.NAME, '{0} {1} ({2})'.format(MOD.NAME, MOD.VERSION, MOD.SUPPORT_URL), None)
+        Manager.AUTO_LOGIN_QUERY_ENABLED = False
+        connectionMgr = ServiceLocator.connectionMgr
+        loginMgr = ServiceLocator.loginMgr
+        connectionMgr.onLoggedOn -= loginMgr._onLoggedOn
+
+        @overrideMethod(Manager.Manager, '_onLoggedOn')
+        def _onLoggedOn(base, *args, **kwargs):
+            return _onLoggedOn_modified(base, *args, **kwargs)
+        
+        connectionMgr.onLoggedOn += loginMgr._onLoggedOn
+    except:
+        LOG_CURRENT_EXCEPTION()
+
+
+def _onLoggedOn_modified(orig, self, responseData):
     try:
         serverName = self._preferences['server_name']
         serverShortName = getServerShortName(serverName)
@@ -59,13 +65,13 @@ def Manager_onLoggedOn_modified(self, responseData):
             self._preferences.clear()
             if serverName != AUTO_LOGIN_QUERY_URL:
                 self._preferences['server_name'] = serverName
-                BigWorld.logInfo(MOD.NAME, 'onLoggedOn: save server_name: {} ({})'.format(serverShortName, serverName), None)
+                BigWorld.logInfo(MOD.NAME, '_onLoggedOn: save server_name: {} ({})'.format(serverShortName, serverName), None)
             self._preferences.writeLoginInfo()
             return
     except:
         LOG_CURRENT_EXCEPTION()
-    self._onLoggedOn(responseData)
-    
+    orig(self, responseData)
+
 
 @overrideMethod(Manager.Manager, 'initiateRelogin')
 def initiateRelogin(orig, self, login, token2, serverName):
@@ -76,6 +82,7 @@ def initiateRelogin(orig, self, login, token2, serverName):
     except:
         LOG_CURRENT_EXCEPTION()
     orig(self, login, token2, serverName)
+
 
 @overrideMethod(Manager.Manager, 'tryWgcLogin')
 def tryWgcLogin(orig, self, serverName = None):
