@@ -30,11 +30,6 @@ def overrideMethod(cls, method):
     return decorator
 
 
-class ServiceLocator(object):
-    connectionMgr = dependency.descriptor(IConnectionManager)
-    loginMgr = dependency.descriptor(ILoginManager)
-
-
 def getServerShortName(serverUrl):
     return g_preDefinedHosts.byUrl(serverUrl).shortName or i18n.makeString('#menu:login/auto')
 
@@ -43,8 +38,8 @@ def init():
     try:
         BigWorld.logInfo(MOD.NAME, '{0} {1} ({2})'.format(MOD.NAME, MOD.VERSION, MOD.SUPPORT_URL), None)
         Manager.AUTO_LOGIN_QUERY_ENABLED = False
-        connectionMgr = ServiceLocator.connectionMgr
-        loginMgr = ServiceLocator.loginMgr
+        connectionMgr = dependency.instance(IConnectionManager)
+        loginMgr = dependency.instance(ILoginManager)
         connectionMgr.onLoggedOn -= loginMgr._onLoggedOn
 
         @overrideMethod(Manager.Manager, '_onLoggedOn')
