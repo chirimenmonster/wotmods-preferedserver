@@ -84,6 +84,12 @@ def tryWgcLogin(orig, self, serverName = None):
     orig(self, serverName)
     try:
         if self.wgcAvailable:
+            if serverName is None:
+                selectedServer = self._Manager__servers.selectedServer
+                if not selectedServer:
+                    BigWorld.logInfo(MOD.NAME, 'No server was selected when WGC connect happened, so return', None)
+                    return
+                serverName = selectedServer['data']
             self._preferences['server_name'] = serverName
             serverShortName = getServerShortName(serverName)
             BigWorld.logInfo(MOD.NAME, 'tryWgcLogin: set preference server_name: {} ({})'.format(serverShortName, serverName), None)
